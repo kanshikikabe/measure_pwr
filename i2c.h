@@ -13,6 +13,6 @@ public:
 
 private:
 	constexpr static u8 TCA9548A_ADDR = 0x75;
-	constexpr static unsigned int SCLK_RATE = 4e5; // 400 KHz
+	constexpr static u32 SCLK_RATE = 1e5; // 100 KHz
 	XIicPs _handle;
 };

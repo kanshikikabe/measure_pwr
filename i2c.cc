@@ -12,10 +12,11 @@ I2C::I2C() {
 	}
 
 	XIicPs_CfgInitialize(&_handle, config, config->BaseAddress);
+	XIicPs_SetOptions(&_handle, XIICPS_7_BIT_ADDR_OPTION);
 
-	if (XST_SUCCESS != XIicPs_SelfTest(&_handle)) {
-		throw std::runtime_error("Selftest failed");
-	}
+//	if (XST_SUCCESS != XIicPs_SelfTest(&_handle)) {
+//		throw std::runtime_error("Selftest failed");
+//	}
 
 	if (XST_SUCCESS != XIicPs_SetSClk(&_handle, SCLK_RATE)) {
 		throw std::runtime_error("setSclk failed");
@@ -23,28 +24,16 @@ I2C::I2C() {
 }
 
 void I2C::send(u16 addr, u8* payload, u32 payloadSize) {
-	DEBUG("Sending to addr: %d", addr);
-	if (XST_SUCCESS != XIicPs_MasterSendPolled(&_handle, payload, sizeof(payload), addr)) {
-		std::printf("%s shat itself\n", __FUNCTION__);
+	//DEBUG("Sending to addr: 0x%02x", addr);
+	if (XST_SUCCESS != XIicPs_MasterSendPolled(&_handle, payload, payloadSize, addr)) {
 		throw std::runtime_error("Failed to send");
 	}
 }
 
 void I2C::recv(u16 addr, u8* recvBuffer, u32 bufSize) {
-	DEBUG("Receiving from addr: %d", addr);
-	while(XIicPs_BusIsBusy(&_handle)) {
-#ifdef DEBUG_MODE
-		xil_printf(".");
-	}
-	xil_printf("\r\n");
-#else
-	}
-#endif
-
+	//DEBUG("Receiving from addr: 0x%02x", addr);
 	u32 status = XIicPs_MasterRecvPolled(&_handle, recvBuffer, bufSize, addr);
 	if (status != XST_SUCCESS) {
-		xil_printf("O shit\r\n");
-		std::printf("%s shat itself\r\n", __FUNCTION__);
 		throw std::runtime_error("MasterRecvPolled failed");
 	}
 }
@@ -52,7 +41,6 @@ void I2C::recv(u16 addr, u8* recvBuffer, u32 bufSize) {
 void I2C::switchTo(u8 pos) {
 	u8 controlReg = (1 << pos);
 	send(TCA9548A_ADDR, &controlReg, sizeof(controlReg));
-	usleep(1000);
 }
 
 void I2C::probeAddressSpace() {
